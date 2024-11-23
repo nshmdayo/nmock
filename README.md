@@ -1,4 +1,4 @@
-# sample-golnag-server
+# nmock
 
 ### Server build and start
 
