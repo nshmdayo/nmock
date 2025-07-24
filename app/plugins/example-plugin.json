@@ -1,0 +1,44 @@
+{
+  "name": "example-plugin",
+  "description": "Example plugin demonstrating various API endpoints",
+  "enabled": true,
+  "endpoints": [
+    {
+      "path": "/api/products",
+      "method": "GET",
+      "status_code": 200,
+      "response": [
+        {
+          "id": 1,
+          "name": "Product A",
+          "price": 99.99
+        },
+        {
+          "id": 2,
+          "name": "Product B",
+          "price": 149.99
+        }
+      ]
+    },
+    {
+      "path": "/api/products/{id}",
+      "method": "GET",
+      "status_code": 200,
+      "response": {
+        "id": 1,
+        "name": "Product A",
+        "price": 99.99
+      }
+    },
+    {
+      "path": "/api/products",
+      "method": "POST",
+      "status_code": 201,
+      "response": {
+        "id": 3,
+        "message": "Product created successfully"
+      },
+      "delay": 300
+    }
+  ]
+}

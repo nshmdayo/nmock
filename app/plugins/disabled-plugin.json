@@ -1,0 +1,15 @@
+{
+  "name": "disabled-plugin",
+  "description": "This plugin is disabled by default",
+  "enabled": false,
+  "endpoints": [
+    {
+      "path": "/api/disabled/test",
+      "method": "GET",
+      "status_code": 200,
+      "response": {
+        "message": "This endpoint is from a disabled plugin"
+      }
+    }
+  ]
+}

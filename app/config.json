@@ -1,0 +1,54 @@
+{
+  "port": "9000",
+  "plugins_dir": "plugins",
+  "endpoints": [
+    {
+      "path": "/api/users",
+      "method": "GET",
+      "status_code": 200,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "response": [
+        {
+          "id": 1,
+          "name": "John Doe",
+          "email": "john@example.com"
+        },
+        {
+          "id": 2,
+          "name": "Jane Smith",
+          "email": "jane@example.com"
+        }
+      ]
+    },
+    {
+      "path": "/api/users/{id}",
+      "method": "GET",
+      "status_code": 200,
+      "response": {
+        "id": 1,
+        "name": "John Doe",
+        "email": "john@example.com"
+      }
+    },
+    {
+      "path": "/api/users",
+      "method": "POST",
+      "status_code": 201,
+      "response": {
+        "id": 3,
+        "message": "User created successfully"
+      },
+      "delay": 500
+    },
+    {
+      "path": "/api/error",
+      "method": "GET",
+      "status_code": 500,
+      "response": {
+        "error": "Internal server error"
+      }
+    }
+  ]
+}

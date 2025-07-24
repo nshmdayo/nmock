@@ -1,12 +1,17 @@
-# ステージ１
-FROM golang:1.23-alpine3.20 AS go
+# ステージ１: ビルド
+FROM golang:1.23-alpine3.20 AS builder
 WORKDIR /app
-COPY ./ ./
-RUN go mod download && go build -o main /app/main.go
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN go build -o nmock main.go
 
-# ステージ２
+# ステージ２: 実行
 FROM alpine:3.20
 WORKDIR /app
-COPY --from=go /app/main .
+RUN apk --no-cache add ca-certificates
+COPY --from=builder /app/nmock .
+COPY --from=builder /app/config.json .
 USER 1001
-CMD [ "/app/main" ]
+EXPOSE 9000
+CMD [ "/app/nmock" ]
