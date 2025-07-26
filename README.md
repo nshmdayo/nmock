@@ -1,53 +1,53 @@
 # nmock
 
-JSONファイルを読み込んでAPIエンドポイントを動的に追加できるモックサーバーです。プラグイン機能により、複数のJSONファイルでエンドポイントを管理できます。
+A mock server that can dynamically add API endpoints by reading JSON files. It supports plugin functionality to manage endpoints across multiple JSON files.
 
-## 機能
+## Features
 
-- JSONファイルからAPIエンドポイントの設定を読み込み
-- プラグインシステムによる動的なエンドポイント管理
-- 設定ファイルとプラグインファイルの変更を監視して自動リロード
-- カスタムヘッダーとステータスコードをサポート
-- レスポンス遅延の設定が可能
-- パス変数（例：`/api/users/{id}`）をサポート
-- 管理API（プラグインの有効化/無効化、一覧表示）
+- Load API endpoint configurations from JSON files
+- Dynamic endpoint management through plugin system
+- Auto-reload by monitoring changes in configuration and plugin files
+- Support for custom headers and status codes
+- Configurable response delays
+- Support for path variables (e.g., `/api/users/{id}`)
+- Admin API (enable/disable plugins, list plugins)
 
-## 使い方
+## Usage
 
-### サーバーの起動とビルド
+### Start and Build Server
 
 ```bash
 make start
 ```
 
-### サーバーの停止と削除
+### Stop and Remove Server
 
 ```bash
 make stop
 ```
 
-### 開発モード
+### Development Mode
 
 ```bash
 make dev
 ```
 
-### 直接実行
+### Direct Execution
 
 ```bash
 cd app
 go run main.go [config_file]
 ```
 
-デフォルトでは `config.json` ファイルを使用します。別の設定ファイルを指定することも可能です：
+By default, it uses the `config.json` file. You can specify a different configuration file:
 
 ```bash
 go run main.go my-config.json
 ```
 
-## 設定ファイル形式
+## Configuration File Format
 
-設定ファイルはJSON形式で、以下の構造を持ちます：
+The configuration file is in JSON format with the following structure:
 
 ```json
 {
@@ -74,15 +74,15 @@ go run main.go my-config.json
 }
 ```
 
-### 設定項目
+### Configuration Items
 
-- `port` (オプション): サーバーのポート番号（デフォルト: 9000）
-- `plugins_dir` (オプション): プラグインディレクトリのパス（デフォルト: plugins）
-- `endpoints`: エンドポイントの配列
+- `port` (optional): Server port number (default: 9000)
+- `plugins_dir` (optional): Plugin directory path (default: plugins)
+- `endpoints`: Array of endpoints
 
-## プラグインシステム
+## Plugin System
 
-プラグインは `plugins` ディレクトリ内のJSONファイルとして管理されます。各プラグインファイルは以下の構造を持ちます：
+Plugins are managed as JSON files within the `plugins` directory. Each plugin file has the following structure:
 
 ```json
 {
@@ -106,85 +106,85 @@ go run main.go my-config.json
 }
 ```
 
-### プラグイン設定項目
+### Plugin Configuration Items
 
-- `name` (必須): プラグインの名前
-- `description` (オプション): プラグインの説明
-- `enabled` (必須): プラグインの有効/無効状態
-- `endpoints` (必須): エンドポイントの配列
+- `name` (required): Plugin name
+- `description` (optional): Plugin description
+- `enabled` (required): Plugin enable/disable state
+- `endpoints` (required): Array of endpoints
 
-#### エンドポイント設定
+#### Endpoint Configuration
 
-- `path` (必須): APIのパス（パス変数をサポート: `/api/users/{id}`）
-- `method` (必須): HTTPメソッド（GET, POST, PUT, DELETE など）
-- `status_code` (オプション): HTTPステータスコード（デフォルト: 200）
-- `headers` (オプション): カスタムヘッダー
-- `response` (必須): レスポンスボディ（JSON オブジェクト、配列、または文字列）
-- `delay` (オプション): レスポンス遅延（ミリ秒）
+- `path` (required): API path (supports path variables: `/api/users/{id}`)
+- `method` (required): HTTP method (GET, POST, PUT, DELETE, etc.)
+- `status_code` (optional): HTTP status code (default: 200)
+- `headers` (optional): Custom headers
+- `response` (required): Response body (JSON object, array, or string)
+- `delay` (optional): Response delay (milliseconds)
 
-## 管理API
+## Admin API
 
-サーバーには管理API機能が組み込まれており、プラグインの管理ができます：
+The server has built-in admin API functionality for plugin management:
 
-### プラグイン一覧
+### List Plugins
 
 ```bash
 curl http://localhost:9000/_admin/plugins
 ```
 
-### 特定プラグインの詳細
+### Get Plugin Details
 
 ```bash
 curl http://localhost:9000/_admin/plugins/example-plugin
 ```
 
-### プラグインの有効化/無効化
+### Enable/Disable Plugin
 
 ```bash
 curl -X POST http://localhost:9000/_admin/plugins/example-plugin/toggle
 ```
 
-### プラグインのリロード
+### Reload Plugins
 
 ```bash
 curl -X POST http://localhost:9000/_admin/reload
 ```
 
-## 組み込みエンドポイント
+## Built-in Endpoints
 
-- `GET /health`: ヘルスチェックエンドポイント
-- `GET /_admin/plugins`: 全プラグインの一覧
-- `GET /_admin/plugins/{name}`: 特定プラグインの詳細
-- `POST /_admin/plugins/{name}/toggle`: プラグインの有効化/無効化
-- `POST /_admin/reload`: プラグインのリロード
+- `GET /health`: Health check endpoint
+- `GET /_admin/plugins`: List all plugins
+- `GET /_admin/plugins/{name}`: Get specific plugin details
+- `POST /_admin/plugins/{name}/toggle`: Enable/disable plugin
+- `POST /_admin/reload`: Reload plugins
 
-## 例
+## Examples
 
-### 基本的な使用例
+### Basic Usage
 
-1. サーバーを起動:
+1. Start the server:
 ```bash
 cd app && go run main.go
 ```
 
-2. APIをテスト:
+2. Test APIs:
 ```bash
-# ユーザー一覧を取得（メイン設定）
+# Get user list (main config)
 curl http://localhost:9000/api/users
 
-# 商品一覧を取得（プラグイン）
+# Get product list (plugin)
 curl http://localhost:9000/api/products
 
-# 認証エンドポイント（プラグイン）
+# Authentication endpoint (plugin)
 curl -X POST http://localhost:9000/api/auth/login
 
-# プラグイン管理
+# Plugin management
 curl http://localhost:9000/_admin/plugins
 ```
 
-### 新しいプラグインの追加
+### Adding a New Plugin
 
-1. `plugins` ディレクトリに新しいJSONファイルを作成:
+1. Create a new JSON file in the `plugins` directory:
 
 ```json
 {
@@ -204,22 +204,22 @@ curl http://localhost:9000/_admin/plugins
 }
 ```
 
-2. ファイルを保存すると自動的にサーバーがリロードされ、新しいエンドポイントが利用可能になります。
+2. Save the file and the server will automatically reload, making the new endpoint available.
 
-### プラグインのホットリロード
+### Plugin Hot Reload
 
-- 設定ファイルやプラグインファイルを変更すると、サーバーを再起動することなく自動的に新しい設定が適用されます
-- プラグインの有効化/無効化は管理APIを使用して動的に行えます
+- When configuration files or plugin files are modified, new settings are automatically applied without restarting the server
+- Plugin enable/disable can be done dynamically using the admin API
 
-## 開発
+## Development
 
 ```bash
-# 依存関係のインストール
+# Install dependencies
 go mod tidy
 
-# アプリケーションの実行
+# Run application
 go run main.go
 
-# ビルド
+# Build
 go build -o nmock main.go
 ```
