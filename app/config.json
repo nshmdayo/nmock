@@ -11,14 +11,14 @@
       },
       "response": [
         {
+          "email": "john@example.com",
           "id": 1,
-          "name": "John Doe",
-          "email": "john@example.com"
+          "name": "John Doe"
         },
         {
+          "email": "jane@example.com",
           "id": 2,
-          "name": "Jane Smith",
-          "email": "jane@example.com"
+          "name": "Jane Smith"
         }
       ]
     },
@@ -27,9 +27,9 @@
       "method": "GET",
       "status_code": 200,
       "response": {
+        "email": "john@example.com",
         "id": 1,
-        "name": "John Doe",
-        "email": "john@example.com"
+        "name": "John Doe"
       }
     },
     {
@@ -49,6 +49,29 @@
       "response": {
         "error": "Internal server error"
       }
+    },
+    {
+      "path": "/api/hello",
+      "method": "GET",
+      "status_code": 200,
+      "response": {
+        "message": "Hello from command line!"
+      }
+    },
+    {
+      "path": "/api/products",
+      "method": "POST",
+      "status_code": 201,
+      "headers": {
+        "Content-Type": "application/json",
+        "X-API-Version": "1.0"
+      },
+      "response": {
+        "created": true,
+        "id": 123,
+        "name": "New Product"
+      },
+      "delay": 300
     }
   ]
 }

@@ -45,6 +45,41 @@ By default, it uses the `config.json` file. You can specify a different configur
 go run main.go my-config.json
 ```
 
+## Command Line Endpoint Management
+
+You can add new API endpoints directly from the command line without editing configuration files:
+
+### Adding Endpoints via Command Line
+
+```bash
+# Add a simple GET endpoint
+./nmock --add-endpoint --path /api/hello --response '{"message": "Hello World"}'
+
+# Add a POST endpoint with custom status code
+./nmock --add-endpoint --path /api/users --method POST --status 201 --response '{"id": 1, "created": true}'
+
+# Add an endpoint with custom headers and delay
+./nmock --add-endpoint --path /api/products --method POST --status 201 \
+  --headers 'Content-Type:application/json,X-API-Version:1.0' \
+  --delay 500 \
+  --response '{"id": 123, "name": "New Product", "created": true}'
+```
+
+### Command Line Options
+
+- `--add-endpoint`: Enable endpoint addition mode
+- `--path`: API endpoint path (required for endpoint addition)
+- `--method`: HTTP method (default: GET)
+- `--status`: HTTP status code (default: 200)
+- `--response`: Response body as JSON string
+- `--headers`: Custom headers in format 'key1:value1,key2:value2'
+- `--delay`: Response delay in milliseconds
+- `--config`: Configuration file path (default: config.json)
+- `--help`: Show help message
+
+When you add an endpoint via command line, it will be automatically saved to the configuration file and will persist across server restarts.
+```
+
 ## Configuration File Format
 
 The configuration file is in JSON format with the following structure:

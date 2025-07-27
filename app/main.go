@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -414,10 +415,179 @@ func (ms *MockServer) Start() error {
 	return http.ListenAndServe(":"+port, ms.router)
 }
 
+// CommandLineEndpoint represents an endpoint to be added via command line
+type CommandLineEndpoint struct {
+	Path       string
+	Method     string
+	StatusCode int
+	Response   string
+	Headers    string
+	Delay      int
+}
+
+// parseCommandLineArgs parses command line arguments for endpoint configuration
+func parseCommandLineArgs() (*CommandLineEndpoint, string, bool) {
+	var (
+		configPath  = flag.String("config", "config.json", "Path to configuration file")
+		addEndpoint = flag.Bool("add-endpoint", false, "Add a new endpoint")
+		path        = flag.String("path", "", "API endpoint path (e.g., /api/test)")
+		method      = flag.String("method", "GET", "HTTP method (GET, POST, PUT, DELETE, etc.)")
+		statusCode  = flag.Int("status", 200, "HTTP status code")
+		response    = flag.String("response", `{"message": "Hello World"}`, "Response body (JSON string)")
+		headers     = flag.String("headers", "", "Custom headers in format 'key1:value1,key2:value2'")
+		delay       = flag.Int("delay", 0, "Response delay in milliseconds")
+		help        = flag.Bool("help", false, "Show help message")
+	)
+
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "nmock - A mock server with dynamic endpoint management\n\n")
+		fmt.Fprintf(os.Stderr, "Usage:\n")
+		fmt.Fprintf(os.Stderr, "  %s [options]                     Start the mock server\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "  %s --add-endpoint [options]      Add a new endpoint\n\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "Options:\n")
+		flag.PrintDefaults()
+		fmt.Fprintf(os.Stderr, "\nExamples:\n")
+		fmt.Fprintf(os.Stderr, "  # Start server with default config\n")
+		fmt.Fprintf(os.Stderr, "  %s\n\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "  # Start server with custom config\n")
+		fmt.Fprintf(os.Stderr, "  %s --config my-config.json\n\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "  # Add a simple GET endpoint\n")
+		fmt.Fprintf(os.Stderr, "  %s --add-endpoint --path /api/hello --response '{\"message\": \"Hello World\"}'\n\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "  # Add a POST endpoint with custom headers and delay\n")
+		fmt.Fprintf(os.Stderr, "  %s --add-endpoint --path /api/users --method POST --status 201 --headers 'Content-Type:application/json,X-Custom:value' --delay 500 --response '{\"id\": 1, \"created\": true}'\n\n", os.Args[0])
+	}
+
+	flag.Parse()
+
+	if *help {
+		flag.Usage()
+		os.Exit(0)
+	}
+
+	if *addEndpoint {
+		if *path == "" {
+			log.Fatal("Error: --path is required when using --add-endpoint")
+		}
+		return &CommandLineEndpoint{
+			Path:       *path,
+			Method:     strings.ToUpper(*method),
+			StatusCode: *statusCode,
+			Response:   *response,
+			Headers:    *headers,
+			Delay:      *delay,
+		}, *configPath, true
+	}
+
+	return nil, *configPath, false
+}
+
+// parseHeaders parses header string into map
+func parseHeaders(headerStr string) map[string]string {
+	headers := make(map[string]string)
+	if headerStr == "" {
+		return headers
+	}
+
+	pairs := strings.Split(headerStr, ",")
+	for _, pair := range pairs {
+		kv := strings.Split(strings.TrimSpace(pair), ":")
+		if len(kv) == 2 {
+			headers[strings.TrimSpace(kv[0])] = strings.TrimSpace(kv[1])
+		}
+	}
+	return headers
+}
+
+// parseResponse parses response string into interface{}
+func parseResponse(responseStr string) interface{} {
+	// Try to parse as JSON first
+	var jsonResponse interface{}
+	if err := json.Unmarshal([]byte(responseStr), &jsonResponse); err == nil {
+		return jsonResponse
+	}
+	// If JSON parsing fails, return as string
+	return responseStr
+}
+
+// AddEndpointToConfig adds a new endpoint to the configuration file
+func AddEndpointToConfig(configPath string, cmdEndpoint *CommandLineEndpoint) error {
+	// Load existing config
+	var config Config
+	if data, err := ioutil.ReadFile(configPath); err == nil {
+		if err := json.Unmarshal(data, &config); err != nil {
+			return fmt.Errorf("failed to parse existing config: %v", err)
+		}
+	} else if !os.IsNotExist(err) {
+		return fmt.Errorf("failed to read config file: %v", err)
+	}
+
+	// Set default values if not set
+	if config.Port == "" {
+		config.Port = "9000"
+	}
+	if config.PluginsDir == "" {
+		config.PluginsDir = "plugins"
+	}
+
+	// Create new endpoint
+	newEndpoint := Endpoint{
+		Path:       cmdEndpoint.Path,
+		Method:     cmdEndpoint.Method,
+		StatusCode: cmdEndpoint.StatusCode,
+		Response:   parseResponse(cmdEndpoint.Response),
+		Headers:    parseHeaders(cmdEndpoint.Headers),
+	}
+
+	if cmdEndpoint.Delay > 0 {
+		newEndpoint.Delay = cmdEndpoint.Delay
+	}
+
+	// Check if endpoint already exists
+	found := false
+	for i, endpoint := range config.Endpoints {
+		if endpoint.Path == newEndpoint.Path && endpoint.Method == newEndpoint.Method {
+			// Update existing endpoint
+			config.Endpoints[i] = newEndpoint
+			log.Printf("Updated existing endpoint: %s %s", newEndpoint.Method, newEndpoint.Path)
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		// Add new endpoint
+		config.Endpoints = append(config.Endpoints, newEndpoint)
+		log.Printf("Added new endpoint: %s %s", newEndpoint.Method, newEndpoint.Path)
+	}
+
+	// Save updated config
+	data, err := json.MarshalIndent(config, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal config: %v", err)
+	}
+
+	if err := ioutil.WriteFile(configPath, data, 0644); err != nil {
+		return fmt.Errorf("failed to write config file: %v", err)
+	}
+
+	return nil
+}
+
 func main() {
-	// Check for config file argument
-	configPath := "config.json"
-	if len(os.Args) > 1 {
+	// Parse command line arguments
+	cmdEndpoint, configPath, shouldAddEndpoint := parseCommandLineArgs()
+
+	if shouldAddEndpoint {
+		// Add endpoint and exit
+		if err := AddEndpointToConfig(configPath, cmdEndpoint); err != nil {
+			log.Fatalf("Failed to add endpoint: %v", err)
+		}
+		log.Printf("Endpoint added successfully to %s", configPath)
+		return
+	}
+
+	// Check for legacy command line argument (backward compatibility)
+	if len(os.Args) > 1 && !strings.HasPrefix(os.Args[1], "-") {
 		configPath = os.Args[1]
 	}
 

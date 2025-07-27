@@ -1,4 +1,4 @@
-# ステージ１: ビルド
+# Stage 1: Build
 FROM golang:1.23-alpine3.20 AS builder
 WORKDIR /app
 COPY go.mod go.sum ./
@@ -6,7 +6,7 @@ RUN go mod download
 COPY . .
 RUN go build -o nmock main.go
 
-# ステージ２: 実行
+# Stage 2: Runtime
 FROM alpine:3.20
 WORKDIR /app
 RUN apk --no-cache add ca-certificates
