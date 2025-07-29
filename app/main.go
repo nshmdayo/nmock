@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -76,7 +75,7 @@ func (ms *MockServer) LoadPlugins() error {
 		return nil
 	}
 
-	files, err := ioutil.ReadDir(ms.pluginsDir)
+	files, err := os.ReadDir(ms.pluginsDir)
 	if err != nil {
 		return fmt.Errorf("failed to read plugins directory: %v", err)
 	}
@@ -96,7 +95,7 @@ func (ms *MockServer) LoadPlugins() error {
 
 // loadSinglePlugin loads a single plugin from file
 func (ms *MockServer) loadSinglePlugin(pluginPath string) error {
-	data, err := ioutil.ReadFile(pluginPath)
+	data, err := os.ReadFile(pluginPath)
 	if err != nil {
 		return fmt.Errorf("failed to read plugin file: %v", err)
 	}
@@ -120,7 +119,7 @@ func (ms *MockServer) LoadConfig() error {
 	ms.mutex.Lock()
 	defer ms.mutex.Unlock()
 
-	data, err := ioutil.ReadFile(ms.configPath)
+	data, err := os.ReadFile(ms.configPath)
 	if err != nil {
 		return fmt.Errorf("failed to read config file: %v", err)
 	}
@@ -317,7 +316,7 @@ func (ms *MockServer) savePlugin(name string, plugin *Plugin) error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(pluginPath, data, 0644)
+	return os.WriteFile(pluginPath, data, 0644)
 }
 
 // WatchConfig watches for configuration file changes and reloads
@@ -513,7 +512,7 @@ func parseResponse(responseStr string) interface{} {
 func AddEndpointToConfig(configPath string, cmdEndpoint *CommandLineEndpoint) error {
 	// Load existing config
 	var config Config
-	if data, err := ioutil.ReadFile(configPath); err == nil {
+	if data, err := os.ReadFile(configPath); err == nil {
 		if err := json.Unmarshal(data, &config); err != nil {
 			return fmt.Errorf("failed to parse existing config: %v", err)
 		}
@@ -566,7 +565,7 @@ func AddEndpointToConfig(configPath string, cmdEndpoint *CommandLineEndpoint) er
 		return fmt.Errorf("failed to marshal config: %v", err)
 	}
 
-	if err := ioutil.WriteFile(configPath, data, 0644); err != nil {
+	if err := os.WriteFile(configPath, data, 0644); err != nil {
 		return fmt.Errorf("failed to write config file: %v", err)
 	}
 
@@ -651,7 +650,7 @@ func createExampleConfig(configPath string) error {
 		return err
 	}
 
-	if err := ioutil.WriteFile(configPath, data, 0644); err != nil {
+	if err := os.WriteFile(configPath, data, 0644); err != nil {
 		return err
 	}
 
@@ -716,5 +715,5 @@ func createExamplePlugin(pluginsDir string) error {
 	}
 
 	pluginPath := filepath.Join(pluginsDir, "example-plugin.json")
-	return ioutil.WriteFile(pluginPath, data, 0644)
+	return os.WriteFile(pluginPath, data, 0644)
 }

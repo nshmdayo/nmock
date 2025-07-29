@@ -9,7 +9,7 @@ RUN go build -o nmock main.go
 # Stage 2: Runtime
 FROM alpine:3.20
 WORKDIR /app
-RUN apk --no-cache add ca-certificates
+RUN apk add ca-certificates=20240226-r0 --no-cache
 COPY --from=builder /app/nmock .
 COPY --from=builder /app/config.json .
 USER 1001

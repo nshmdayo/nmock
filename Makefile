@@ -4,6 +4,8 @@ start:
 
 stop:
 	docker stop nmock-server
+
+clean:
 	docker rm nmock-server
 	docker rmi nmock-server
 
@@ -14,10 +16,4 @@ dev:
 	cd app && go run main.go
 
 build:
-	cd app && go build -o nmock main.go
-
-tidy:
-	cd app && go mod tidy
-
-test:
-	cd app && go test ./...
+	cd app && go build -o ../output/nmock main.go
