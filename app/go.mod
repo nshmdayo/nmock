@@ -1,6 +1,6 @@
 module app
 
-go 1.23.3
+go 1.24
 
 require (
 	github.com/fsnotify/fsnotify v1.7.0
